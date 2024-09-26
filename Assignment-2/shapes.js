@@ -1,7 +1,3 @@
-import { Tetrahedron } from './Shapes/Tetrahedron.js';
-import { Sphere } from './Shapes/Sphere.js';
-import { Cone } from './Shapes/Cone.js';
-
 let gl = undefined;
 
 const TETRA_CYCLE = 100;
@@ -15,7 +11,7 @@ function init() {
     gl = canvas.getContext("webgl2");
     if (!gl) { alert("Your Web browser doesn't support WebGL 2\nPlease contact Dave"); }
     tetra = new Tetrahedron(gl);
-    sphere = new Sphere(gl);
+    sphere = new Sphere(gl, 18, 36);
     cone = new Cone(gl);
     tetraStack = new MatrixStack();
     sphereStack = new MatrixStack();
@@ -25,13 +21,17 @@ function init() {
     tetraFrame = 0;
     sphereFrame = 0;
     coneFrame = 0;
+    render();
 }
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    let zSphere = sphereFrame;
+    var z;
+    if(sphereFrame < 50) z = 0.01*sphereFrame;
+    else z = 1-0.01*sphereFrame;
     sphereStack.push()
-    sphereStack.translate(0, 0, zSphere);
+    sphereStack.translate(0, z, 0);
+    sphereStack.scale(0.1, 0.1, 0.1);
     sphere.MV = sphereStack.current();
     sphere.draw();
     sphereStack.pop();
