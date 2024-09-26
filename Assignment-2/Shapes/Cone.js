@@ -10,7 +10,7 @@
 
 'use strict;'
 
-class Cone {
+export class Cone {
     constructor(gl, numSides, vertexShader, fragmentShader) {
 
         vertexShader ||= `

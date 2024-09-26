@@ -7,7 +7,7 @@
 
 'use strict;'
 
-class Tetrahedron {
+export class Tetrahedron {
     constructor(gl, vertexShader, fragmentShader) {
 
         vertexShader ||= `
