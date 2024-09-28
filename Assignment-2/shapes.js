@@ -1,45 +1,62 @@
 let gl = undefined;
 
-const TETRA_CYCLE = 100;
 const SPHERE_CYCLE = 100;
-const CONE_CYCLE = 100;
-
-var tetra, sphere, cone, sphereStack, sphereFrame;
+const SQUASH_FRAMES = 10;
+const SQUASH_SIZE = 0.6;
+var tetra, sphere, cone, mv, frame;
+frame = 0
 
 function init() {
     let canvas = document.getElementById("webgl-canvas");
     gl = canvas.getContext("webgl2");
     if (!gl) { alert("Your Web browser doesn't support WebGL 2\nPlease contact Dave"); }
     tetra = new Tetrahedron(gl);
-    sphere = new Sphere(gl, 18, 36);
-    cone = new Cone(gl);
-    sphereStack = new MatrixStack();
+    sphere = new Sphere(gl, 36, 18);
+    cone = new Cone(gl, 36);
+    mv = new MatrixStack();
     gl.clearColor(0.2, 0.2, 0.2, 1.0);
     gl.enable(gl.DEPTH_TEST);
     tetraFrame = 0;
-    sphereFrame = 0;
+    frame = 0;
     coneFrame = 0;
     render();
 }
 
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    var z;
-    //if(sphereFrame < 50) z = 0.01*sphereFrame;
-    //else z = 1-0.01*sphereFrame;
-    z = -sphereFrame*sphereFrame/3000 + sphereFrame/30
-    sphereStack.push()
-    sphereStack.translate(0, z, 0);
-    sphereStack.scale(0.1, 0.1, 0.1);
-    sphere.MV = sphereStack.current();
+    var y, yScale;
+    y = -frame*frame/3000 + frame/30;
+    yScale = 0.1;
+    if(frame < SQUASH_FRAMES) {
+        y += -0.1 * (1-SQUASH_SIZE) * (SQUASH_FRAMES - frame) / SQUASH_FRAMES;
+        yScale += -0.1 * (1-SQUASH_SIZE) * (SQUASH_FRAMES - frame) / SQUASH_FRAMES;
+    }
+    else if(frame > SPHERE_CYCLE-SQUASH_FRAMES) {
+        y += 0.1 * (1-SQUASH_SIZE) * (SPHERE_CYCLE - SQUASH_FRAMES - frame) / SQUASH_FRAMES;
+        yScale += 0.1 * (1-SQUASH_SIZE) * (SPHERE_CYCLE - SQUASH_FRAMES - frame) / SQUASH_FRAMES;
+    }
+    mv.push()
+    mv.translate(0, y, 0);
+    mv.scale(0.1, yScale, 0.1);
+    sphere.MV = mv.current();
     sphere.draw();
-    sphereStack.pop();
-    tetraFrame++;
-    sphereFrame++;
-    coneFrame++;
-    if(tetraFrame >= TETRA_CYCLE) tetraFrame = 0;
-    if(sphereFrame >= SPHERE_CYCLE) sphereFrame = 0;
-    if(coneFrame >= CONE_CYCLE) coneFrame = 0;
+    mv.pop();
+    mv.push();
+    mv.translate(-0.5, -0.1, 0.6);
+    mv.rotate(90, [0,0,1]);
+    mv.scale(0.1, 0.1, 0.1);
+    tetra.MV = mv.current();
+    tetra.draw();
+    mv.pop();
+    mv.push();
+    mv.translate(0.5, -0.1, 0.6);
+    mv.rotate(-90, [1,0,0]);
+    mv.scale(0.1, 0.1, 0.1);
+    cone.MV = mv.current();
+    cone.draw();
+    mv.pop();
+    frame++;
+    if(frame >= SPHERE_CYCLE) frame = 0;
     requestAnimationFrame(render);
 }
 

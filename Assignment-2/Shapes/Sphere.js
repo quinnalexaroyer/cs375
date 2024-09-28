@@ -8,7 +8,7 @@
 
 'use strict;'
 
-export class Sphere {
+class Sphere {
     constructor(gl, numStrips, numSlices, vertexShader, fragmentShader) {
 
         vertexShader ||= `
