@@ -1,6 +1,6 @@
 let gl = undefined;
 
-const SPHERE_CYCLE = 100;
+const CYCLE = 100;
 const SQUASH_FRAMES = 10;
 const SQUASH_SIZE = 0.6;
 var tetra, sphere, cone, mv, frame;
@@ -31,9 +31,9 @@ function render() {
         y += -0.1 * (1-SQUASH_SIZE) * (SQUASH_FRAMES - frame) / SQUASH_FRAMES;
         yScale += -0.1 * (1-SQUASH_SIZE) * (SQUASH_FRAMES - frame) / SQUASH_FRAMES;
     }
-    else if(frame > SPHERE_CYCLE-SQUASH_FRAMES) {
-        y += 0.1 * (1-SQUASH_SIZE) * (SPHERE_CYCLE - SQUASH_FRAMES - frame) / SQUASH_FRAMES;
-        yScale += 0.1 * (1-SQUASH_SIZE) * (SPHERE_CYCLE - SQUASH_FRAMES - frame) / SQUASH_FRAMES;
+    else if(frame > CYCLE-SQUASH_FRAMES) {
+        y += 0.1 * (1-SQUASH_SIZE) * (CYCLE - SQUASH_FRAMES - frame) / SQUASH_FRAMES;
+        yScale += 0.1 * (1-SQUASH_SIZE) * (CYCLE - SQUASH_FRAMES - frame) / SQUASH_FRAMES;
     }
     mv.push()
     mv.translate(0, y, 0);
@@ -42,21 +42,22 @@ function render() {
     sphere.draw();
     mv.pop();
     mv.push();
-    mv.translate(-0.5, -0.1, 0.6);
-    mv.rotate(90, [0,0,1]);
+    var dx = 0.01*Math.abs(frame - CYCLE/2)
+    mv.translate(-0.5 + dx, -0.4, 0.8);
+    mv.rotate(3.6*frame, [0,0,1]);
     mv.scale(0.1, 0.1, 0.1);
     tetra.MV = mv.current();
     tetra.draw();
     mv.pop();
     mv.push();
-    mv.translate(0.5, -0.1, 0.6);
-    mv.rotate(-90, [1,0,0]);
+    mv.translate(0.5, -0.4, 0.8);
+    mv.rotate(3.6*frame, [1,0,0]);
     mv.scale(0.1, 0.1, 0.1);
     cone.MV = mv.current();
     cone.draw();
     mv.pop();
     frame++;
-    if(frame >= SPHERE_CYCLE) frame = 0;
+    if(frame >= CYCLE) frame = 0;
     requestAnimationFrame(render);
 }
 
