@@ -13,10 +13,10 @@ function init() {
     tetra = new Tetrahedron(gl);
     sphere = new Sphere(gl, 36, 18);
     cone = new Cone(gl, 36);
+    tetra.color = vec4(0,1,1,1);
+    sphere.color = vec4(1,1,0,1);
+    cone.color = vec4(1,0.5,0,1);
     mv = new MatrixStack();
-    tetra.color = [0,1,1,1];
-    sphere.color = [1,1,0,1];
-    cone.color = [1,0.5,0,1];
     gl.clearColor(0.2, 0.2, 0.2, 1.0);
     gl.enable(gl.DEPTH_TEST);
     tetraFrame = 0;
