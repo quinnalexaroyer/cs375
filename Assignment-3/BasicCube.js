@@ -5,29 +5,69 @@
 //  A cube defined of 12 triangles
 //
 
-vertexShader = `
-    in vec4 aPosition;
-
-    uniform mat4 P;
-    uniform mat4 MV;
-
-    void main() {
-        gl_Position = P * MV * aPosition;
-    }
-`;
-
 class BasicCube {
     constructor(gl, vertexShader, fragmentShader) {
 
+        vertexShader ||= `
+            in vec4 aPosition;
+        
+            uniform mat4 P;
+            uniform mat4 MV;
+        
+            void main() {
+                vColor = aColor;
+                gl_Position = P * MV * aPosition;
+            }
+        `;
+        
+        fragmentShader ||= `
+            uniform vec4 color;
+            out vec4 fColor;
+        
+            void main() {
+                fColor = color;
+            }
+        `;
+
         let program = new ShaderProgram(gl, this, vertexShader, fragmentShader);
-        const co = new Float16Array([ 0.5,  0.5,  0.5,    0.5,  0.5, -0.5,    0.5, -0.5,  0.5,
-                                      0.5, -0.5, -0.5,   -0.5,  0.5,  0.5,   -0.5,  0.5, -0.5,
-                                     -0.5, -0.5,  0.5,   -0.5, -0.5, -0.5]);
-        const triangles = new Int8Array([0,1,2, 1,2,3, 2,3,7, 7,6,2, 6,2,0, 0,4,6,
-                                         4,6,5, 6,5,7, 5,7,3, 3,1,5, 1,5,4, 5,0,1]);
-        const colors = new Float16Array([1,1,1, 1,1,0, 1,0,1, 1,0,0, 0,1,1, 0,1,0, 0,0,1, 0,0,0]);
+        let co = new Float32Array([
+             0.5,  0.5,  0.5,    0.5, -0.5,  0.5,    0.5,  0.5, -0.5,
+             0.5,  0.5, -0.5,    0.5, -0.5, -0.5,    0.5, -0.5,  0.5,
+             0.5, -0.5,  0.5,    0.5, -0.5, -0.5,   -0.5, -0.5, -0.5,
+            -0.5, -0.5, -0.5,   -0.5, -0.5,  0.5,    0.5, -0.5,  0.5,
+            -0.5, -0.5,  0.5,    0.5,  0.5,  0.5,    0.5, -0.5,  0.5,
+             0.5,  0.5,  0.5,   -0.5, -0.5,  0.5,   -0.5,  0.5,  0.5,
+            -0.5,  0.5,  0.5,   -0.5, -0.5,  0.5,   -0.5,  0.5, -0.5,
+            -0.5, -0.5,  0.5,   -0.5, -0.5, -0.5,   -0.5,  0.5, -0.5,
+            -0.5,  0.5, -0.5,   -0.5, -0.5, -0.5,    0.5, -0.5, -0.5,
+             0.5, -0.5, -0.5,    0.5,  0.5, -0.5,   -0.5,  0.5, -0.5,
+             0.5,  0.5, -0.5,   -0.5,  0.5,  0.5,   -0.5,  0.5, -0.5,
+            -0.5,  0.5, -0.5,    0.5,  0.5, -0.5,    0.5,  0.5,  0.5
+        ]);
+        let color = new Uint8Array([
+            255, 255, 255, 255,      255, 128,   0, 255,      255,   0,   0, 255,
+            255,   0,   0, 255,      255, 255,   0, 255,      255, 128,   0, 255,
+            255, 128,   0, 255,      255, 255,   0, 255,        0,   0,   0, 255,
+              0,   0,   0, 255,      128,   0, 255, 255,      255, 128,   0, 255,
+            128,   0, 255, 255,      255, 255, 255, 255,      255, 128,   0, 255,
+            255, 255, 255, 255,      128,   0, 255, 255,        0, 255,   0, 255,
+              0, 255,   0, 255,      128,   0, 255, 255,        0,   0, 255, 255,
+            128,   0, 255, 255,        0,   0,   0, 255,        0,   0, 255, 255,
+              0,   0, 255, 255,        0,   0,   0, 255,      255, 255,   0, 255,
+            255, 255,   0, 255,      255,   0,   0, 255,        0,   0, 255, 255,
+            255,   0,   0, 255,        0, 255,   0, 255,        0,   0, 255, 255,
+              0,   0, 255, 255,      255,   0,   0, 255,      255, 255, 255, 255
+        ]);
+        let aPosition = new Attribute(gl, program, "aPosition", co, 3, gl.FLOAT);
+        let aColor = new Attribute(gl, program, "aColor", color, 4, gl.UNSIGNED_BYTE);
         this.draw = () => {
-            // program.use();
+            gl.useProgram(program);
+            program.MV();
+            program.P();
+            program.color();
+            aPosition.enable();
+            gl.drawArrays(gl.TRIANGLES, 0, aPosition.count);
+            aPosition.disable();
         };
     }
 };
