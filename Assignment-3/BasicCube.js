@@ -10,9 +10,12 @@ class BasicCube {
 
         vertexShader ||= `
             in vec4 aPosition;
+            in vec4 aColor;
         
             uniform mat4 P;
             uniform mat4 MV;
+            
+            out vec4 vColor;
         
             void main() {
                 vColor = aColor;
@@ -61,12 +64,14 @@ class BasicCube {
         let aPosition = new Attribute(gl, program, "aPosition", co, 3, gl.FLOAT);
         let aColor = new Attribute(gl, program, "aColor", color, 4, gl.UNSIGNED_BYTE);
         this.draw = () => {
-            gl.useProgram(program);
+            program.use();
             program.MV();
             program.P();
             program.color();
             aPosition.enable();
+            aColor.enable();
             gl.drawArrays(gl.TRIANGLES, 0, aPosition.count);
+            aColor.disable();
             aPosition.disable();
         };
     }
