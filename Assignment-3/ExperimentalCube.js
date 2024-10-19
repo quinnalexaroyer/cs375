@@ -38,7 +38,7 @@ class ExperimentalCube {
         const color = new Float32Array([1,1,1, 1,0,0, 1,1,0, 1,0.5,0, 0,1,1, 0.5,1,0, 0,1,0, 0,0,0]);
         let aPosition = new Attribute(gl, program, "aPosition", co, 3, gl.FLOAT);
         let indices = new Indices(gl, indexList);
-        let aColor = new Attribute(gl, program, "aColor", color, 3, gl.UNSIGNED_BYTE);
+        let aColor = new Attribute(gl, program, "aColor", color, 3, gl.FLOAT);
         this.draw = () => {
             program.use();
             aPosition.enable();
