@@ -1,0 +1,32 @@
+<svg width="300" height="400">
+<rect width="300" height="400" fill="white"/>
+
+<circle r="10" cx="150" cy="350" fill="black"/>
+
+<circle r="10" cx="120" cy="20" fill="black"/>
+<circle r="10" cx="180" cy="80" fill="black"/>
+
+<circle r="10" cx="220" cy="120" fill="black"/>
+<circle r="10" cx="250" cy="150" fill="black"/>
+<circle r="10" cx="280" cy="180" fill="black"/>
+
+<circle r="10" cx="20" cy="120" fill="black"/>
+<circle r="10" cx="20" cy="180" fill="black"/>
+<circle r="10" cx="80" cy="120" fill="black"/>
+<circle r="10" cx="80" cy="180" fill="black"/>
+
+<circle r="10" cx="120" cy="220" fill="black"/>
+<circle r="10" cx="120" cy="280" fill="black"/>
+<circle r="10" cx="150" cy="250" fill="black"/>
+<circle r="10" cx="180" cy="220" fill="black"/>
+<circle r="10" cx="180" cy="280" fill="black"/>
+
+<circle r="10" cx="120" cy="120" fill="black"/>
+<circle r="10" cx="120" cy="180" fill="black"/>
+<circle r="10" cx="150" cy="120" fill="black"/>
+<circle r="10" cx="150" cy="180" fill="black"/>
+<circle r="10" cx="180" cy="120" fill="black"/>
+<circle r="10" cx="180" cy="180" fill="black"/>
+
+</svg>
+
