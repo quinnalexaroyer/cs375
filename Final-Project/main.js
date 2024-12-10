@@ -6,14 +6,71 @@ const scene = new THREE.Scene();
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
+const clock = new THREE.Clock();
+const roothalf = 0.7071067811865476;
+
+let humanoid;
+let armature;
+let mixer;
+let clips;
+let walkClip;
+let walkAction;
+let startWalkClip;
+let startWalkAction;
+let endWalkClip;
+let endWalkAction;
+let pickUpClip;
+let pickUpAction;
+let pickUpHoldClip;
+let pickUpHoldAction;
+let kickClip;
+let kickAction;
+let turnLeftClip;
+let turnLeftAction;
+let turnRightClip;
+let turnRightAction;
+
+var isHolding = false;
+var direction = 0;
+
+function d() {
+  if(direction == 0) return [0,1];
+  else if(direction == 1) return [roothalf, -roothalf];
+  else if(direction == 2) return [-1,0];
+  else if(direction == 3) return [-roothalf, -roothalf];
+  else if(direction == 4) return [0,-1];
+  else if(direction == 5) return [roothalf, -roothalf];
+  else if(direction == 6) return [1,0];
+  else if(direction == 7) return [roothalf, roothalf];
+}
 
 const loader = new GLTFLoader();
-loader.load('model/humanoid.glb', function (gltf) {
+let whatLoaded = loader.load('model/humanoid.glb', function (gltf) {
     scene.add(gltf.scene);
-    const humanoid = gltf.scene.getObjectByName('Humanoid');
-    const armature = gltf.scene.getObjectByName('Armature');
+    humanoid = gltf.scene.getObjectByName('Humanoid');
+    armature = gltf.scene.getObjectByName('Armature');
     armature.position.set(0,0,0);
-    armature.quaternion.setFromEuler(new THREE.Euler(2*Math.PI/4, 0*Math.PI/4, 0*Math.PI/4));
+    armature.quaternion.setFromEuler(new THREE.Euler(2*Math.PI/4, 2*Math.PI/4, 0*Math.PI/4));
+    mixer = new THREE.AnimationMixer(armature);
+    clips = gltf.animations;
+    walkClip = THREE.AnimationClip.findByName(clips, "Walk");
+    walkAction = mixer.clipAction(walkClip);
+    startWalkClip = THREE.AnimationClip.findByName(clips, "StartWalk");
+    startWalkAction = mixer.clipAction(startWalkClip);
+    endWalkClip = THREE.AnimationClip.findByName(clips, "EndWalk");
+    endWalkAction = mixer.clipAction(endWalkClip);
+    pickUpClip = THREE.AnimationClip.findByName(clips, "PickUp");
+    pickUpAction = mixer.clipAction(pickUpClip);
+    pickUpHoldClip = THREE.AnimationClip.findByName(clips, "PickUpHold");
+    pickUpHoldAction = mixer.clipAction(pickUpClip);
+    kickClip = THREE.AnimationClip.findByName(clips, "Kick");
+    kickAction = mixer.clipAction(kickClip);
+    turnLeftClip = THREE.AnimationClip.findByName(clips, "TurnLeft");
+    turnLeftAction = mixer.clipAction(turnLeftClip);
+    turnRightClip = THREE.AnimationClip.findByName(clips, "TurnRight");
+    turnRightAction = mixer.clipAction(turnRightClip);
+    console.log(walkClip);
+    console.log(walkAction);
 }, undefined, function (error) {
     console.error(error);
 } );
@@ -59,26 +116,73 @@ scene.add(light);
 
 let keysPressed = {};
 document.addEventListener("keydown", onDocumentKeyDown, false);
-document.addEventListener("keyup", function(event) {
+document.addEventListener("keyup", onDocumentKeyUp, false);
+
+function onDocumentKeyUp(event) {
   delete keysPressed[event.which];
-});
+  if(event.which == 38) {
+    walkAction.stop();
+  }
+};
 function onDocumentKeyDown(event) {
   keysPressed[event.which] = true;
   if(keysPressed[17]) {
     if(keysPressed[98]) {
       camera.rotateX(-Math.PI/36);
     } else if(keysPressed[100]) {
-      camera.rotateY(-Math.PI/36);
+      camera.rotateZ(-Math.PI/36);
     } else if(keysPressed[102]) {
-      camera.rotateY(Math.PI/36);
+      camera.rotateZ(Math.PI/36);
     } else if(keysPressed[104]) {
       camera.rotateX(Math.PI/36);
     }
-  } else if(keysPressed[37] && keysPressed[38]) {
-  } else if(keysPressed[39] && keysPressed[38]) {
   } else if(keysPressed[37]) {
+    if(!turnLeftAction.isRunning() && !turnRightAction.isRunning()) {
+      turnLeftAction.play();
+      for(var i=0; i<10; i++) {
+        direction = (direction-1) % 8;
+        setTimeout(() => {
+          armature.rotateY(0.1*Math.PI/4);
+        }, 100*i);
+      }
+      setTimeout(() => {
+        turnLeftAction.stop();
+      }, 1000);
+    }
   } else if(keysPressed[38]) {
+    if(!walkAction.isRunning()) {
+      walkAction.play();
+    }
+    armature.translateZ(0.05);
   } else if(keysPressed[39]) {
+    if(!turnLeftAction.isRunning() && !turnRightAction.isRunning()) {
+      turnRightAction.play();
+      for(var i=0; i<10; i++) {
+        direction = (direction+1) % 8;
+        setTimeout(() => {
+          armature.rotateY(-0.1*Math.PI/4);
+        }, 100*i);
+      }
+      setTimeout(() => {
+        turnRightAction.stop();
+      }, 1000);
+    }
+  } else if(keysPressed[40]) {
+    if(!pickUpAction.isRunning()) {
+      if(!pickUpHoldAction.isRunning()) {
+        pickUpAction.play();
+        setTimeout(() => {
+          pickUpAction.stop();
+          pickUpHoldAction.play();
+        }, 1000);
+      } else {
+        pickUpHoldAction.stop();
+        pickUpAction.play();
+        setTimeout(() => {
+          pickUpAction.stop();
+        }, 1000);
+      }
+    }
   } else {
     if(keysPressed[98]) {
       camera.translateY(-0.05);
@@ -97,8 +201,12 @@ function onDocumentKeyDown(event) {
 }
 
 function animate() {
-  renderer.render( scene, camera );
+  var delta = clock.getDelta();
+  if(mixer) {
+    mixer.update(delta);	
+  }
+  renderer.render(scene, camera);
   renderer.physicallyCorrectLights = true; 
 }
-renderer.setAnimationLoop( animate );
+renderer.setAnimationLoop(animate);
 
