@@ -23,6 +23,8 @@ let pickUpClip;
 let pickUpAction;
 let pickUpHoldClip;
 let pickUpHoldAction;
+let putDownClip;
+let putDownAction;
 let kickClip;
 let kickAction;
 let turnLeftClip;
@@ -34,14 +36,29 @@ var isHolding = false;
 var direction = 0;
 
 function d() {
-  if(direction == 0) return [0,1];
+  if(direction == 0) return [1,0];
   else if(direction == 1) return [roothalf, -roothalf];
-  else if(direction == 2) return [-1,0];
+  else if(direction == 2) return [0,-1];
   else if(direction == 3) return [-roothalf, -roothalf];
-  else if(direction == 4) return [0,-1];
-  else if(direction == 5) return [roothalf, -roothalf];
-  else if(direction == 6) return [1,0];
+  else if(direction == 4) return [-1,0];
+  else if(direction == 5) return [-roothalf, roothalf];
+  else if(direction == 6) return [0,1];
   else if(direction == 7) return [roothalf, roothalf];
+}
+
+function mod(x,y) {
+  if(x >= 0) return x%y;
+  else return y-((-x)%y);
+}
+
+function isBetween(x,y,z) {
+  return (x >= y && y >= z) || (x <= y && y <= z);
+}
+
+function canKick(obj) {
+  let x = armature.position.x + d()[0];
+  let y = armature.position.y + d()[1];
+  return isBetween(x-1, obj.position.x, x+1) && isBetween(y-1, obj.position.y, y+1)
 }
 
 const loader = new GLTFLoader();
@@ -63,14 +80,14 @@ let whatLoaded = loader.load('model/humanoid.glb', function (gltf) {
     pickUpAction = mixer.clipAction(pickUpClip);
     pickUpHoldClip = THREE.AnimationClip.findByName(clips, "PickUpHold");
     pickUpHoldAction = mixer.clipAction(pickUpClip);
+    putDownClip = THREE.AnimationClip.findByName(clips, "PutDown");
+    putDownAction = mixer.clipAction(pickUpClip);
     kickClip = THREE.AnimationClip.findByName(clips, "Kick");
     kickAction = mixer.clipAction(kickClip);
     turnLeftClip = THREE.AnimationClip.findByName(clips, "TurnLeft");
     turnLeftAction = mixer.clipAction(turnLeftClip);
     turnRightClip = THREE.AnimationClip.findByName(clips, "TurnRight");
     turnRightAction = mixer.clipAction(turnRightClip);
-    console.log(walkClip);
-    console.log(walkAction);
 }, undefined, function (error) {
     console.error(error);
 } );
@@ -105,6 +122,7 @@ const ballGeometry = new THREE.SphereGeometry(0.5, 32, 16);
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
 scene.add(ball)
 ball.position.set(-3, 1, 0.5);
+ball.quaternion.setFromEuler(new THREE.Euler(2*Math.PI/4, 0, 0));
 
 const camera = new THREE.PerspectiveCamera(75, 16/9, 0.01, 100);
 camera.position.set(0, -10, 4);
@@ -139,8 +157,8 @@ function onDocumentKeyDown(event) {
   } else if(keysPressed[37]) {
     if(!turnLeftAction.isRunning() && !turnRightAction.isRunning()) {
       turnLeftAction.play();
+      direction = mod(direction-1, 8);
       for(var i=0; i<10; i++) {
-        direction = (direction-1) % 8;
         setTimeout(() => {
           armature.rotateY(0.1*Math.PI/4);
         }, 100*i);
@@ -157,8 +175,8 @@ function onDocumentKeyDown(event) {
   } else if(keysPressed[39]) {
     if(!turnLeftAction.isRunning() && !turnRightAction.isRunning()) {
       turnRightAction.play();
+      direction = mod(direction+1, 8);
       for(var i=0; i<10; i++) {
-        direction = (direction+1) % 8;
         setTimeout(() => {
           armature.rotateY(-0.1*Math.PI/4);
         }, 100*i);
@@ -169,18 +187,30 @@ function onDocumentKeyDown(event) {
     }
   } else if(keysPressed[40]) {
     if(!pickUpAction.isRunning()) {
-      if(!pickUpHoldAction.isRunning()) {
-        pickUpAction.play();
-        setTimeout(() => {
-          pickUpAction.stop();
-          pickUpHoldAction.play();
-        }, 1000);
-      } else {
-        pickUpHoldAction.stop();
-        pickUpAction.play();
-        setTimeout(() => {
-          pickUpAction.stop();
-        }, 1000);
+      pickUpAction.clampWhenFinished = true;
+      pickUpAction.reset();
+      pickUpAction.play();
+    } else {
+      putDownAction.setLoop(THREE.LoopOnce);
+      putDownAction.reset();
+      pickUpAction.stop();
+      putDownAction.play();
+    }
+  } else if(keysPressed[75]) {
+    if(!kickAction.isRunning()) {
+      kickAction.setLoop(THREE.LoopOnce);
+      kickAction.reset();
+      kickAction.play();
+      if(canKick(ball)) {
+      }
+      if(canKick(cube)) {
+        var dd = d();
+        for(var i=1; i<=10; i++) {
+          setTimeout(() => {
+            cube.position.x -= dd[0]*(10-i)/10;
+            cube.position.y -= dd[1]*(10-i)/10;
+          }, 170*i);
+        }
       }
     }
   } else {
