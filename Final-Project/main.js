@@ -187,6 +187,7 @@ function onDocumentKeyDown(event) {
     }
   } else if(keysPressed[40]) {
     if(!pickUpAction.isRunning()) {
+      pickUpAction.setLoop(THREE.LoopOnce);
       pickUpAction.clampWhenFinished = true;
       pickUpAction.reset();
       pickUpAction.play();
@@ -202,6 +203,13 @@ function onDocumentKeyDown(event) {
       kickAction.reset();
       kickAction.play();
       if(canKick(ball)) {
+        var dd = d();
+        for(var i=1; i<=20; i++) {
+          setTimeout(() => {
+            ball.position.x -= dd[0]*(20-i)/10;
+            ball.position.y -= dd[1]*(20-i)/10;
+          }, 170*i);
+        }
       }
       if(canKick(cube)) {
         var dd = d();
